@@ -1,6 +1,8 @@
 # AppTimer
 AppTimer is an windows dekstop app that shows you how long each of your apps has been running.
+-------------------------------------------------------------------------------------------------
 <img width="674" height="647" alt="Screenshot 2026-06-14 204852" src="https://github.com/user-attachments/assets/a14cd5a8-0145-4eeb-82ab-593d199cc341" />
+
 ## Features
 - See all open apps with how long they have been running
 - App icons next to each app
