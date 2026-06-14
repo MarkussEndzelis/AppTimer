@@ -29,7 +29,8 @@ def get_running_apps(show_all=False):
     "ShellExperienceHost.exe", "LockApp.exe", "LogiOverlay.exe",
     "NVIDIA Overlay.exe", "NvContainer.exe", "nvsphelper64.exe",
     "svchost.exe", "RuntimeBroker.exe", "dllhost.exe", "conhost.exe",
-    "WmiPrvSE.exe", "SearchIndexer.exe", "taskhostw.exe"
+    "WmiPrvSE.exe", "SearchIndexer.exe", "taskhostw.exe",
+    "msedgewebview2.exe", "WidgetBoard.exe"
 }
 
     import win32gui

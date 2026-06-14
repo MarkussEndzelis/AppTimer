@@ -8,7 +8,7 @@ class AppTimerUI:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("AppTimer")
-        self.root.geometry("600x500")
+        self.root.geometry("600x600")
         self.root.configure(bg="#1e1e2e")
         self.root.resizable(True, True)
         self._build()
@@ -27,8 +27,10 @@ class AppTimerUI:
                  borderwidth=0).pack(side="left", fill="x", expand=True)
         
         self.show_all_var = tk.BooleanVar(value=False)
-        tk.Checkbutton(self.root, text="Show all processes", variable=self.show_all_var, bg="#1e1e2e", fg="white", selectcolor="#2f3542", font=("Segoe UI", 10), 
-                       command=self._refresh_table).pack(anchor="w", padx=20, pady=(0, 8))
+        tk.Checkbutton(self.root, text="Show all processes", variable=self.show_all_var,
+                       bg="#1e1e2e", fg="white", selectcolor="#2f3542",
+                       font=("Segoe UI", 10),
+                       command=self._force_refresh).pack(anchor="w", padx=20, pady=(0,8))
         
         cols = ("App", "Time Running")
         self.tree = ttk.Treeview(self.root, columns=cols, show="headings", style="Dark.Treeview")
@@ -62,7 +64,17 @@ class AppTimerUI:
             if search and search not in name.lower():
                 continue
             self.tree.insert("", "end", values=(name, tracker.format_time(seconds)))
-        self.status_var.set(f"Tracking {len(self.current_apps)} apps - updated just now")
+        total = sum(self.current_apps.values())
+        if self.current_apps:
+            top_app = max(self.current_apps.items(), key=lambda x: x[1])
+            top_name = top_app[0].replace(".exe", "")
+            self.status_var.set(f"{len(self.current_apps)} apps open - Most active: {top_name} ({tracker.format_time(top_app[1])})")
+        else:
+            self.status_var.set("No apps detected")
+
+    def _force_refresh(self):
+        self.current_apps = tracker.get_running_apps(self.show_all_var.get())
+        self._refresh_table()    
 
     def _sort_by(self, col):
         if self.sort_col == col:
