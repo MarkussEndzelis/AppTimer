@@ -3,6 +3,7 @@ from tkinter import ttk
 import threading
 import time
 import tracker
+import datetime
 
 class AppTimerUI:
     def __init__(self):
@@ -32,14 +33,16 @@ class AppTimerUI:
                        font=("Segoe UI", 10),
                        command=self._force_refresh).pack(anchor="w", padx=20, pady=(0,8))
         
-        cols = ("App", "Time Running")
+        cols = ("App", "Time Running", "Started")
         self.tree = ttk.Treeview(self.root, columns=cols, show="headings", style="Dark.Treeview")
         self.sort_col = "Time Running"
         self.sort_reverse = True
         self.tree.heading("App", text="App", command=lambda: self._sort_by("App"))
         self.tree.heading("Time Running", text="Time Running", command=lambda: self._sort_by("Time Running"))
-        self.tree.column("App", width=350)
+        self.tree.heading("Started", text="Started", command=lambda: self._sort_by("Started"))
+        self.tree.column("App", width=250)
         self.tree.column("Time Running", width=150)
+        self.tree.column("Started", width=100)
         self.tree.pack(fill="both", expand=True, padx=20, pady=(0, 10))
 
         scrollbar = ttk.Scrollbar(self.root, orient="vertical", command=self.tree.yview)
@@ -51,6 +54,7 @@ class AppTimerUI:
         style = ttk.Style()
         style.theme_use("clam")
         style.configure("Dark.Treeview", background="#2f3542", foreground="white", fieldbackground="#2f3542", rowheight=28, font=("Segoe UI", 10))
+        style.configure("Dark.Treeview.Heading", background="#1e1e2e", foreground="#a0a0b0", font=("Segoe UI", 10, "bold"))
         style.map("Dark.Treeview", background=[("selected", "#5865f2")])
 
     def _refresh_table(self):
@@ -58,17 +62,19 @@ class AppTimerUI:
         self.tree.delete(*self.tree.get_children())
         if self.sort_col == "App":
             apps = sorted(self.current_apps.items(), key=lambda x: x[0].lower(), reverse=self.sort_reverse)
+        elif self.sort_col == "Started":
+            apps = sorted(self.current_apps.items(), key=lambda x: x[1]["start"], reverse=self.sort_reverse)
         else:
-            apps = sorted(self.current_apps.items(), key=lambda x: x[1], reverse=self.sort_reverse)
-        for name, seconds in apps:
+            apps = sorted(self.current_apps.items(), key=lambda x: x[1]["time"], reverse=self.sort_reverse)
+        for name, data in apps:
             if search and search not in name.lower():
                 continue
-            self.tree.insert("", "end", values=(name, tracker.format_time(seconds)))
-        total = sum(self.current_apps.values())
+            started = datetime.datetime.fromtimestamp(data["start"]).strftime("%I:%M %p")
+            self.tree.insert("", "end", values=(name, tracker.format_time(data["time"]), started))
         if self.current_apps:
-            top_app = max(self.current_apps.items(), key=lambda x: x[1])
-            top_name = top_app[0].replace(".exe", "")
-            self.status_var.set(f"{len(self.current_apps)} apps open - Most active: {top_name} ({tracker.format_time(top_app[1])})")
+            top_app = max(self.current_apps.items(), key=lambda x: x[1]["time"])
+            top_name = top_app[0]
+            self.status_var.set(f"{len(self.current_apps)} apps open - Most active: {top_name} ({tracker.format_time(top_app[1]['time'])})")
         else:
             self.status_var.set("No apps detected")
 

@@ -55,8 +55,9 @@ def get_running_apps(show_all=False):
                 continue
             name = name.replace(".exe", "")
             elapsed = time.time() - proc.info['create_time']
-            if name not in apps or elapsed > apps[name]:
-                apps[name] = elapsed
+            create_time = proc.info['create_time']
+            if name not in apps or elapsed > apps[name]["time"]:
+                apps[name] = {"time": elapsed, "start": create_time}
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
     return apps
