@@ -4,6 +4,7 @@ import threading
 import time
 import tracker
 import datetime
+from PIL import Image, ImageTk
 
 class AppTimerUI:
     def __init__(self):
@@ -13,6 +14,8 @@ class AppTimerUI:
         self.root.configure(bg="#1e1e2e")
         self.root.resizable(True, True)
         self._build()
+        self.icon_cache = {}
+        self.icon_refs = []
         self._start_tracking()
 
     def _build(self):
@@ -34,7 +37,8 @@ class AppTimerUI:
                        command=self._force_refresh).pack(anchor="w", padx=20, pady=(0,8))
         
         cols = ("App", "Time Running", "Started")
-        self.tree = ttk.Treeview(self.root, columns=cols, show="headings", style="Dark.Treeview")
+        self.tree = ttk.Treeview(self.root, columns=cols, show="tree headings", style="Dark.Treeview")
+        self.tree.column("#0", width=30)
         self.sort_col = "Time Running"
         self.sort_reverse = True
         self.tree.heading("App", text="App", command=lambda: self._sort_by("App"))
@@ -70,7 +74,19 @@ class AppTimerUI:
             if search and search not in name.lower():
                 continue
             started = datetime.datetime.fromtimestamp(data["start"]).strftime("%I:%M %p")
-            self.tree.insert("", "end", values=(name, tracker.format_time(data["time"]), started))
+            if name not in self.icon_cache:
+                img = tracker.get_app_icon(name)
+                if img:
+                    photo = ImageTk.PhotoImage(img)
+                    self.icon_cache[name] = photo
+                    self.icon_refs.append(photo)
+                else:
+                    self.icon_cache[name] = None
+            icon = self.icon_cache.get(name)
+            if icon:
+                self.tree.insert("", "end", image=icon, values=(name, tracker.format_time(data["time"]), started))
+            else:
+                self.tree.insert("", "end", values=(name, tracker.format_time(data["time"]), started))
         if self.current_apps:
             top_app = max(self.current_apps.items(), key=lambda x: x[1]["time"])
             top_name = top_app[0]

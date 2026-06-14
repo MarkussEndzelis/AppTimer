@@ -73,3 +73,38 @@ def format_time(seconds):
         return f"{m}m {s}s"
     else:
         return f"{s}s"
+    
+def get_app_icon(exe_name):
+    try:
+        import win32api
+        import win32con
+        import win32gui
+        import win32ui
+        from PIL import Image
+
+        for proc in psutil.process_iter(['name', 'exe']):
+            try:
+                if proc.info['name'] and proc.info['name'].lower().replace(".exe", "") == exe_name.lower():
+                    exe_path = proc.info['exe']
+                    if not exe_path:
+                        return None
+                    large, small = win32gui.ExtractIconEx(exe_path, 0)
+                    if not large and not small:
+                        return None
+                    icon = large[0] if large else small[0]
+                    hdc = win32ui.CreateDCFromHandle(win32gui.GetDC(0))
+                    hbmp = win32ui.CreateBitmap()
+                    hbmp.CreateCompatibleBitmap(hdc, 16, 16)
+                    hdc2 = hdc.CreateCompatibleDC()
+                    hdc2.SelectObject(hbmp)
+                    win32gui.DrawIconEx(hdc2.GetHandleOutput(), 0, 0, icon, 16, 16, 0, None, win32con.DI_NORMAL)
+                    bmp_info = hbmp.GetInfo()
+                    bmp_str = hbmp.GetBitmapBits(True)
+                    img = Image.frombuffer('RGB', (bmp_info['bmWidth'], bmp_info['bmHeight']), bmp_str, 'raw', 'BGRX', 0, 1)
+                    win32gui.DestroyIcon(icon)
+                    return img
+            except:
+                continue
+    except:
+        pass
+    return None
