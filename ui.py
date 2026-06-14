@@ -15,11 +15,11 @@ class AppTimerUI:
         self.root.resizable(True, True)
         self.icon_cache = {}
         self.icon_refs = []
+        self.dark_mode = True
         self._build()
         self._start_tracking()
 
     def _build(self):
-        # Header
         header = tk.Frame(self.root, bg="#13131f")
         header.pack(fill="x", padx=30, pady=(28, 0))
         tk.Label(header, text="AppTimer", fg="white", bg="#13131f",
@@ -27,12 +27,14 @@ class AppTimerUI:
         self.status_var = tk.StringVar(value="Loading...")
         tk.Label(header, textvariable=self.status_var, fg="#404060",
                  bg="#13131f", font=("Segoe UI", 9)).pack(side="right", pady=(8, 0))
+        tk.Button(header, text="☀️", bg="#13131f", fg="white", borderwidth=0,
+                  cursor="hand2", font=("Segoe UI", 12),
+                  command=self._toggle_theme).pack(side="right", pady=(4, 0))
 
         tk.Label(self.root, text="Track how long your apps have been running",
                  fg="#404060", bg="#13131f",
                  font=("Segoe UI", 10)).pack(anchor="w", padx=30, pady=(2, 20))
 
-        # Search + toggle row
         row = tk.Frame(self.root, bg="#13131f")
         row.pack(fill="x", padx=30, pady=(0, 12))
 
@@ -54,7 +56,6 @@ class AppTimerUI:
                        font=("Segoe UI", 10),
                        command=self._force_refresh).pack(side="right", padx=(12, 0))
 
-        # Table
         table_frame = tk.Frame(self.root, bg="#1e1e30")
         table_frame.pack(fill="both", expand=True, padx=30, pady=(0, 0))
 
@@ -79,13 +80,11 @@ class AppTimerUI:
         scrollbar.pack(side="right", fill="y")
         self.tree.pack(fill="both", expand=True)
 
-        # Bottom bar
         bottom = tk.Frame(self.root, bg="#0f0f1a", pady=10)
         bottom.pack(fill="x", padx=0)
         tk.Label(bottom, text="Updates every 3 seconds", fg="#2a2a40",
                  bg="#0f0f1a", font=("Segoe UI", 8)).pack(side="right", padx=20)
 
-        # Style
         style = ttk.Style()
         style.theme_use("clam")
         style.configure("Dark.Treeview", background="#1e1e30", foreground="white",
@@ -147,6 +146,40 @@ class AppTimerUI:
             self.sort_col = col
             self.sort_reverse = col == "Time Running"
         self._refresh_table()
+
+    def _toggle_theme(self):
+        self.dark_mode = not self.dark_mode
+        if self.dark_mode:
+            bg = "#13131f"
+            bg2 = "#1e1e30"
+            fg = "white"
+            fg2 = "#404060"
+        else:
+            bg = "#f5f5f5"
+            bg2 = "#ffffff"
+            fg = "#111111"
+            fg2 = "#888888"
+
+        self.root.configure(bg=bg)
+
+        def apply(widget):
+            try:
+                widget.configure(bg=bg)
+            except:
+                pass
+            try:
+                widget.configure(fg=fg)
+            except:
+                pass
+            for child in widget.winfo_children():
+                apply(child)
+
+        apply(self.root)
+
+        style = ttk.Style()
+        style.configure("Dark.Treeview", background=bg2, foreground=fg,
+                        fieldbackground=bg2)
+        style.configure("Dark.Treeview.Heading", background=bg, foreground=fg2)
 
     def _start_tracking(self):
         self.current_apps = {}
