@@ -22,7 +22,7 @@ def save_data(data):
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-def get_running_apps():
+def get_running_apps(show_all=False):
     BLOCKED = {
     "explorer.exe", "TextInputHost.exe", "ApplicationFrameHost.exe",
     "SystemSettings.exe", "SearchHost.exe", "StartMenuExperienceHost.exe",
@@ -47,14 +47,15 @@ def get_running_apps():
     apps = {}
     for proc in psutil.process_iter(['pid', 'name', 'create_time']):
         try:
-            if proc.info['pid'] in visible_pids:
-                name = proc.info['name']
-                if name in BLOCKED:
-                    continue
-                name = name.replace(".exe", "")
-                elapsed = time.time() - proc.info['create_time']
-                if name not in apps or elapsed > apps[name]:
-                    apps[name] = elapsed
+            if not show_all and proc.info['pid'] not in visible_pids:
+                continue
+            name = proc.info['name']
+            if not show_all and name in BLOCKED:
+                continue
+            name = name.replace(".exe", "")
+            elapsed = time.time() - proc.info['create_time']
+            if name not in apps or elapsed > apps[name]:
+                apps[name] = elapsed
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass
     return apps

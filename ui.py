@@ -26,6 +26,10 @@ class AppTimerUI:
         tk.Entry(search_frame, textvariable=self.search_var, bg="#2f3542", fg="white", insertbackground="white", font=("Segoe UI", 10),
                  borderwidth=0).pack(side="left", fill="x", expand=True)
         
+        self.show_all_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(self.root, text="Show all processes", variable=self.show_all_var, bg="#1e1e2e", fg="white", selectcolor="#2f3542", font=("Segoe UI", 10), 
+                       command=self._refresh_table).pack(anchor="w", padx=20, pady=(0, 8))
+        
         cols = ("App", "Time Running")
         self.tree = ttk.Treeview(self.root, columns=cols, show="headings", style="Dark.Treeview")
         self.tree.heading("App", text="App")
@@ -59,7 +63,7 @@ class AppTimerUI:
         self.current_apps = {}
         def loop():
             while True:
-                self.current_apps = tracker.get_running_apps()
+                self.current_apps = tracker.get_running_apps(self.show_all_var.get())
                 self.root.after(0, self._refresh_table)
                 time.sleep(3)
         t = threading.Thread(target=loop, daemon=True)
