@@ -23,16 +23,37 @@ def save_data(data):
         json.dump(data, f, indent=4)
 
 def get_running_apps():
+    BLOCKED = {
+    "explorer.exe", "TextInputHost.exe", "ApplicationFrameHost.exe",
+    "SystemSettings.exe", "SearchHost.exe", "StartMenuExperienceHost.exe",
+    "ShellExperienceHost.exe", "LockApp.exe", "LogiOverlay.exe",
+    "NVIDIA Overlay.exe", "NvContainer.exe", "nvsphelper64.exe",
+    "svchost.exe", "RuntimeBroker.exe", "dllhost.exe", "conhost.exe",
+    "WmiPrvSE.exe", "SearchIndexer.exe", "taskhostw.exe"
+}
+
+    import win32gui
+    import win32process
+
+    visible_pids = set()
+
+    def callback(hwnd, _):
+        if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd):
+            _, pid = win32process.GetWindowThreadProcessId(hwnd)
+            visible_pids.add(pid)
+
+    win32gui.EnumWindows(callback, None)
+
     apps = {}
-    for proc in psutil.process_iter(['name', 'create_time']):
+    for proc in psutil.process_iter(['pid', 'name', 'create_time']):
         try:
-            name = proc.info['name']
-            create_time = proc.info['create_time']
-            elapsed = time.time() - create_time
-            if name not in apps:
-                apps[name] = elapsed
-            else:
-                if elapsed > apps[name]:
+            if proc.info['pid'] in visible_pids:
+                name = proc.info['name']
+                if name in BLOCKED:
+                    continue
+                name = name.replace(".exe", "")
+                elapsed = time.time() - proc.info['create_time']
+                if name not in apps or elapsed > apps[name]:
                     apps[name] = elapsed
         except (psutil.NoSuchProcess, psutil.AccessDenied):
             pass

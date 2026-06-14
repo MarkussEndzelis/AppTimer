@@ -41,7 +41,7 @@ class AppTimerUI:
         tk.Label(self.root, textvariable=self.status_var, fg="#576574", bg="#1e1e2e", font=("Segoe UI", 9)).pack(pady=(0, 10))
 
         style = ttk.Style()
-        style.theme_use("claim")
+        style.theme_use("clam")
         style.configure("Dark.Treeview", background="#2f3542", foreground="white", fieldbackground="#2f3542", rowheight=28, font=("Segoe UI", 10))
         style.map("Dark.Treeview", background=[("selected", "#5865f2")])
 
