@@ -32,8 +32,10 @@ class AppTimerUI:
         
         cols = ("App", "Time Running")
         self.tree = ttk.Treeview(self.root, columns=cols, show="headings", style="Dark.Treeview")
-        self.tree.heading("App", text="App")
-        self.tree.heading("Time Running", text="Time Running")
+        self.sort_col = "Time Running"
+        self.sort_reverse = True
+        self.tree.heading("App", text="App", command=lambda: self._sort_by("App"))
+        self.tree.heading("Time Running", text="Time Running", command=lambda: self._sort_by("Time Running"))
         self.tree.column("App", width=350)
         self.tree.column("Time Running", width=150)
         self.tree.pack(fill="both", expand=True, padx=20, pady=(0, 10))
@@ -52,12 +54,23 @@ class AppTimerUI:
     def _refresh_table(self):
         search = self.search_var.get().lower()
         self.tree.delete(*self.tree.get_children())
-        apps = sorted(self.current_apps.items(), key=lambda x: x[1], reverse=True)
+        if self.sort_col == "App":
+            apps = sorted(self.current_apps.items(), key=lambda x: x[0].lower(), reverse=self.sort_reverse)
+        else:
+            apps = sorted(self.current_apps.items(), key=lambda x: x[1], reverse=self.sort_reverse)
         for name, seconds in apps:
             if search and search not in name.lower():
                 continue
             self.tree.insert("", "end", values=(name, tracker.format_time(seconds)))
         self.status_var.set(f"Tracking {len(self.current_apps)} apps - updated just now")
+
+    def _sort_by(self, col):
+        if self.sort_col == col:
+            self.sort_reverse = not self.sort_reverse
+        else:
+            self.sort_col = col
+            self.sort_reverse = col == "Time Running"
+        self._refresh_table()
 
     def _start_tracking(self):
         self.current_apps = {}
